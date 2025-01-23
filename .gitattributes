@@ -1,0 +1,7 @@
+# Konwersja linii w plikach tekstowych
+* text=auto
+
+# Pliki binarne (brak zmiany zakończeń linii)
+*.png binary
+*.jpg binary
+*.svg binary
