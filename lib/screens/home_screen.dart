@@ -1,0 +1,190 @@
+import 'package:flutter/material.dart';
+import 'package:movies_browser/screens/movie_details_screen.dart';
+import 'package:movies_browser/screens/search_screen.dart';
+import '../services/tmdb_service.dart';
+import 'categories_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final TMDBService _tmdbService = TMDBService();
+  List<dynamic> _popularMovies = [];
+  List<dynamic> _upcomingMovies = [];
+  List<dynamic> _topRatedMovies = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMovies();
+  }
+
+  Future<void> _fetchMovies() async {
+    try {
+      final popularData = await _tmdbService.fetchPopularMovies();
+      final upcomingData = await _tmdbService.fetchUpcomingMovies();
+      final topRatedData = await _tmdbService.fetchTopRatedMovies();
+
+      setState(() {
+        _popularMovies = popularData['results'];
+        _upcomingMovies = upcomingData['results'];
+        _topRatedMovies = topRatedData['results'];
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching movies: $e')),
+      );
+    }
+  }
+
+  Widget _buildMovieSection(String title, List<dynamic> movies) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        SizedBox(
+            height: 200, // Wysokość poziomej listy
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: movies.length,
+              itemBuilder: (context, index) {
+                final movie = movies[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MovieDetailsScreen(
+                          id: movie['id'],
+                          mediaType:
+                              'movie', // Możesz rozszerzyć to o obsługę seriali, jeśli potrzeba
+                        ),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: movie['poster_path'] != null
+                              ? Image.network(
+                                  'https://image.tmdb.org/t/p/w200${movie['poster_path']}',
+                                  width: 100,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(Icons.image_not_supported,
+                                  size: 100),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          movie['title'] ?? 'Brak tytułu',
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            )),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('MovieTalk'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: const Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Strona główna'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.category),
+              title: const Text('Kategorie'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const CategoriesScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Ustawienia'),
+              onTap: () {
+                Navigator.pop(context);
+                // Możesz dodać ekran ustawień tutaj.
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Wyszukiwarka'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SearchScreen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              children: [
+                _buildMovieSection('Popularne Filmy', _popularMovies),
+                _buildMovieSection('Najnowsze Produkcje', _upcomingMovies),
+                _buildMovieSection('Najlepiej Oceniane', _topRatedMovies),
+              ],
+            ),
+    );
+  }
+}
