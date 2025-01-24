@@ -113,4 +113,9 @@ class TMDBService {
       throw Exception('Failed to load TV details: $e');
     }
   }
+
+  Future<List<dynamic>> fetchTrailers(int id, String mediaType) async {
+    final response = await _dio.get('/$mediaType/$id/videos');
+    return response.data['results'] ?? [];
+  }
 }
