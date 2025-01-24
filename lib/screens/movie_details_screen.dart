@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/tmdb_service.dart';
 
 class MovieDetailsScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class MovieDetailsScreen extends StatefulWidget {
 class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   final TMDBService _tmdbService = TMDBService();
   Map<String, dynamic>? _details;
+  List<dynamic> _trailers = [];
   bool _isLoading = true;
 
   @override
@@ -28,11 +30,14 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
 
   Future<void> _fetchDetails() async {
     try {
-      final data = widget.mediaType == 'movie'
+      final details = widget.mediaType == 'movie'
           ? await _tmdbService.fetchMovieDetails(widget.id)
           : await _tmdbService.fetchTvDetails(widget.id);
+      final trailers =
+          await _tmdbService.fetchTrailers(widget.id, widget.mediaType);
       setState(() {
-        _details = data;
+        _details = details;
+        _trailers = trailers;
         _isLoading = false;
       });
     } catch (e) {
@@ -42,6 +47,15 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading details: $e')),
       );
+    }
+  }
+
+  void _playTrailer(String key) async {
+    final url = 'https://www.youtube.com/watch?v=$key';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
   }
 
@@ -75,11 +89,11 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Data premiery: ${_details?['release_date'] ?? 'Brak danych'}',
+                    '${widget.mediaType == 'movie' ? 'Release Date' : 'First Air Date'}: ${_details?[widget.mediaType == 'movie' ? 'release_date' : 'first_air_date'] ?? 'No Data'}',
                     style: const TextStyle(fontSize: 16),
                   ),
                   Text(
-                    'Czas trwania: ${_details?['runtime'] != null ? "${_details!['runtime']} min" : 'Brak danych'}',
+                    '${widget.mediaType == 'movie' ? 'Runtime' : 'Episode Runtime'}: ${_details?['episode_run_time'] != null ? (_details!['episode_run_time'] as List).isNotEmpty ? "${_details!['episode_run_time'][0]} min" : 'No Data' : "${_details?['runtime'] ?? 'No Data'}"}',
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 8),
@@ -110,8 +124,35 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                   Text(
                     'Status: ${_details?['status'] ?? 'Brak danych'}',
                     style: const TextStyle(
-                        fontSize: 16, fontStyle: FontStyle.italic),
+                      fontSize: 16,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Zwiastuny:',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  if (_trailers.isNotEmpty)
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _trailers.length,
+                      itemBuilder: (context, index) {
+                        final trailer = _trailers[index];
+                        if (trailer['site'] == 'YouTube') {
+                          return ListTile(
+                            leading: const Icon(Icons.play_circle_fill),
+                            title: Text(trailer['name']),
+                            onTap: () => _playTrailer(trailer['key']),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    )
+                  else
+                    const Text('Brak zwiastunów dostępnych.'),
                 ],
               ),
             ),

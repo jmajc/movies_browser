@@ -61,54 +61,53 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         SizedBox(
-            height: 200, // Wysokość poziomej listy
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: movies.length,
-              itemBuilder: (context, index) {
-                final movie = movies[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MovieDetailsScreen(
-                          id: movie['id'],
-                          mediaType:
-                              'movie', // Możesz rozszerzyć to o obsługę seriali, jeśli potrzeba
-                        ),
+          height: 200,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: movies.length,
+            itemBuilder: (context, index) {
+              final movie = movies[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MovieDetailsScreen(
+                        id: movie['id'],
+                        mediaType: 'movie',
                       ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: movie['poster_path'] != null
-                              ? Image.network(
-                                  'https://image.tmdb.org/t/p/w200${movie['poster_path']}',
-                                  width: 100,
-                                  height: 150,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Icon(Icons.image_not_supported,
-                                  size: 100),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          movie['title'] ?? 'Brak tytułu',
-                          style: const TextStyle(fontSize: 12),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ],
                     ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: movie['poster_path'] != null
+                            ? Image.network(
+                                'https://image.tmdb.org/t/p/w200${movie['poster_path']}',
+                                width: 100,
+                                height: 150,
+                                fit: BoxFit.cover,
+                              )
+                            : const Icon(Icons.image_not_supported, size: 100),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        movie['title'] ?? 'No Title',
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
                   ),
-                );
-              },
-            )),
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -123,11 +122,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
-              child: const Text(
+              child: Text(
                 'Menu',
                 style: TextStyle(
                   color: Colors.white,
@@ -137,14 +136,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.home),
-              title: const Text('Strona główna'),
+              title: const Text('Home'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.category),
-              title: const Text('Kategorie'),
+              title: const Text('Categories'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -156,15 +155,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text('Ustawienia'),
+              title: const Text('Settings'),
               onTap: () {
                 Navigator.pop(context);
-                // Możesz dodać ekran ustawień tutaj.
               },
             ),
             ListTile(
               leading: const Icon(Icons.search),
-              title: const Text('Wyszukiwarka'),
+              title: const Text('Search'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -180,9 +178,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                _buildMovieSection('Popularne Filmy', _popularMovies),
-                _buildMovieSection('Najnowsze Produkcje', _upcomingMovies),
-                _buildMovieSection('Najlepiej Oceniane', _topRatedMovies),
+                _buildMovieSection('Popular Movies', _popularMovies),
+                _buildMovieSection('Upcoming Movies', _upcomingMovies),
+                _buildMovieSection('Top Rated Movies', _topRatedMovies),
               ],
             ),
     );
