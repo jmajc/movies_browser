@@ -56,13 +56,14 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Text(
             title,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 103, 48, 9),
             ),
           ),
         ),
         SizedBox(
-          height: 200,
+          height: 250,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: movies.length,
@@ -81,28 +82,45 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: movie['poster_path'] != null
-                            ? Image.network(
-                                'https://image.tmdb.org/t/p/w200${movie['poster_path']}',
-                                width: 100,
-                                height: 150,
-                                fit: BoxFit.cover,
-                              )
-                            : const Icon(Icons.image_not_supported, size: 100),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Container(
+                    width: 140,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          offset: Offset(0, 4),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        children: [
+                          movie['poster_path'] != null
+                              ? Image.network(
+                                  'https://image.tmdb.org/t/p/w200${movie['poster_path']}',
+                                  width: 140,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(Icons.image_not_supported,
+                                  size: 100),
+                          const SizedBox(height: 8),
+                          Text(
+                            movie['title'] ?? 'No Title',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        movie['title'] ?? 'No Title',
-                        style: const TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               );
@@ -118,6 +136,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('MovieTalk'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SearchScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -125,13 +156,19 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                gradient: LinearGradient(
+                  colors: [
+                    Color.fromARGB(255, 103, 48, 9),
+                    Color.fromARGB(255, 103, 48, 9)
+                  ],
+                ),
               ),
               child: Text(
                 'Menu',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -155,26 +192,8 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.search),
-              title: const Text('Search'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SearchScreen()),
-                );
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.favorite),
-              title: const Text('Ulubione'),
+              title: const Text('Favorites'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -182,6 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialPageRoute(
                       builder: (context) => const FavoritesScreen()),
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
               },
             ),
           ],
