@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/tmdb_service.dart';
+import '../services/favorites_service.dart'; // Import FavoritesService
 
 class MovieDetailsScreen extends StatefulWidget {
   final int id;
@@ -18,9 +19,12 @@ class MovieDetailsScreen extends StatefulWidget {
 
 class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   final TMDBService _tmdbService = TMDBService();
+  final FavoritesService _favoritesService =
+      FavoritesService(); // FavoritesService
   Map<String, dynamic>? _details;
   List<dynamic> _trailers = [];
   bool _isLoading = true;
+  bool _isFavorite = false; // Status ulubionych
 
   @override
   void initState() {
@@ -33,10 +37,14 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
       final details = widget.mediaType == 'movie'
           ? await _tmdbService.fetchMovieDetails(widget.id)
           : await _tmdbService.fetchTvDetails(widget.id);
+      final isFavorite = await _favoritesService.isFavorite(widget.id);
       final trailers =
           await _tmdbService.fetchTrailers(widget.id, widget.mediaType);
+
+      // Aktualizacja stanu w jednym wywołaniu setState
       setState(() {
         _details = details;
+        _isFavorite = isFavorite;
         _trailers = trailers;
         _isLoading = false;
       });
@@ -50,12 +58,25 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     }
   }
 
+  Future<void> _toggleFavorite() async {
+    if (_isFavorite) {
+      await _favoritesService.removeFavorite(widget.id);
+    } else {
+      await _favoritesService.addFavorite(widget.id);
+    }
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+  }
+
   void _playTrailer(String key) async {
     final url = 'https://www.youtube.com/watch?v=$key';
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      throw 'Could not launch $url';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not launch trailer: $url')),
+      );
     }
   }
 
@@ -64,6 +85,15 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_details?['title'] ?? _details?['name'] ?? 'Szczegóły'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : Colors.white,
+            ),
+            onPressed: _toggleFavorite, // Obsługa ulubionych
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

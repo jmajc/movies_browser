@@ -22,6 +22,7 @@ class _CategoryMoviesScreenState extends State<CategoryMoviesScreen> {
   final TMDBService _tmdbService = TMDBService();
   List<dynamic> _movies = [];
   bool _isLoading = true;
+  bool _sortByRating = false; // Flaga sortowania
 
   @override
   void initState() {
@@ -49,11 +50,32 @@ class _CategoryMoviesScreenState extends State<CategoryMoviesScreen> {
     }
   }
 
+  void _sortMoviesByRating() {
+    setState(() {
+      _sortByRating = !_sortByRating;
+      if (_sortByRating) {
+        _movies.sort((a, b) =>
+            (b['vote_average'] ?? 0).compareTo(a['vote_average'] ?? 0));
+      } else {
+        _movies.sort((a, b) => (a['title'] ?? a['name'] ?? '')
+            .compareTo(b['title'] ?? b['name'] ?? ''));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.genreName),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _sortByRating ? Icons.star : Icons.star_border,
+            ),
+            onPressed: _sortMoviesByRating,
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
