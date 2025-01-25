@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/tmdb_service.dart';
-import '../services/favorites_service.dart'; // Import FavoritesService
+import '../services/favorites_service.dart';
 
 class MovieDetailsScreen extends StatefulWidget {
   final int id;
@@ -19,12 +19,11 @@ class MovieDetailsScreen extends StatefulWidget {
 
 class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   final TMDBService _tmdbService = TMDBService();
-  final FavoritesService _favoritesService =
-      FavoritesService(); // FavoritesService
+  final FavoritesService _favoritesService = FavoritesService();
   Map<String, dynamic>? _details;
   List<dynamic> _trailers = [];
+  bool _isFavorite = false;
   bool _isLoading = true;
-  bool _isFavorite = false; // Status ulubionych
 
   @override
   void initState() {
@@ -41,7 +40,6 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
       final trailers =
           await _tmdbService.fetchTrailers(widget.id, widget.mediaType);
 
-      // Aktualizacja stanu w jednym wywołaniu setState
       setState(() {
         _details = details;
         _isFavorite = isFavorite;
@@ -84,14 +82,14 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_details?['title'] ?? _details?['name'] ?? 'Szczegóły'),
+        title: Text(_details?['title'] ?? _details?['name'] ?? 'Details'),
         actions: [
           IconButton(
             icon: Icon(
               _isFavorite ? Icons.favorite : Icons.favorite_border,
               color: _isFavorite ? Colors.red : Colors.white,
             ),
-            onPressed: _toggleFavorite, // Obsługa ulubionych
+            onPressed: _toggleFavorite,
           ),
         ],
       ),
@@ -111,7 +109,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                     ),
                   const SizedBox(height: 16),
                   Text(
-                    _details?['title'] ?? _details?['name'] ?? 'Brak tytułu',
+                    _details?['title'] ?? _details?['name'] ?? 'No Title',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -122,47 +120,45 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                     '${widget.mediaType == 'movie' ? 'Release Date' : 'First Air Date'}: ${_details?[widget.mediaType == 'movie' ? 'release_date' : 'first_air_date'] ?? 'No Data'}',
                     style: const TextStyle(fontSize: 16),
                   ),
+                  const SizedBox(height: 8),
                   Text(
                     '${widget.mediaType == 'movie' ? 'Runtime' : 'Episode Runtime'}: ${_details?['episode_run_time'] != null ? (_details!['episode_run_time'] as List).isNotEmpty ? "${_details!['episode_run_time'][0]} min" : 'No Data' : "${_details?['runtime'] ?? 'No Data'}"}',
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Gatunki: ${_details?['genres'] != null ? (_details!['genres'] as List).map((genre) => genre['name']).join(', ') : 'Brak danych'}',
+                    'Genres: ${_details?['genres'] != null ? (_details!['genres'] as List).map((genre) => genre['name']).join(', ') : 'No Data'}',
                     style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _details?['overview'] ?? 'Brak opisu',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Średnia ocena: ${_details?['vote_average']?.toString() ?? 'Brak'}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        'Liczba głosów: ${_details?['vote_count']?.toString() ?? 'Brak'}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Status: ${_details?['status'] ?? 'Brak danych'}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontStyle: FontStyle.italic,
-                    ),
+                    'Average Rating: ${_details?['vote_average']?.toString() ?? 'No Data'}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Vote Count: ${_details?['vote_count']?.toString() ?? 'No Data'}',
+                    style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Zwiastuny:',
+                    'Overview:',
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    _details?['overview'] ?? 'No Description',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Trailers:',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   if (_trailers.isNotEmpty)
                     ListView.builder(
@@ -182,7 +178,7 @@ class _MovieDetailsScreenState extends State<MovieDetailsScreen> {
                       },
                     )
                   else
-                    const Text('Brak zwiastunów dostępnych.'),
+                    const Text('No trailers available.'),
                 ],
               ),
             ),
